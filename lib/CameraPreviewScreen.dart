@@ -102,7 +102,8 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen> {
       // method.parameters is a Map of <String: String>
       // keys are 'number' & 'expiry'
       print(call.arguments);
-      Get.back(result: call.arguments);
+      Navigator.pop(context, call.arguments);
+      // Get.back(result: call.arguments);
     }
   }
 }

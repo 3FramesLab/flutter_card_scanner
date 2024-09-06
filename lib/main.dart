@@ -33,6 +33,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // static const platform = MethodChannel('com.3frames/ocr');
+  String cardNumber = '';
+  String expiryDate = '';
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +42,24 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+      ),
+      body: Stack(
+        children: [
+          Positioned(
+              top: 50,
+              left: 10,
+              child: Text(
+                cardNumber,
+                style: const TextStyle(fontSize: 18),
+              )),
+          Positioned(
+              top: 100,
+              left: 10,
+              child: Text(
+                expiryDate,
+                style: const TextStyle(fontSize: 18),
+              ))
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _captureImage,
@@ -50,7 +70,27 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _captureImage() async {
-    Get.to(() => const CameraPreviewScreen());
+    final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CameraPreviewScreen(),
+        ));
+    print(result);
+    if (result is Map) {
+      result.forEach((key, value) {
+        final keyString = key.toString();
+        if (keyString == 'number') {
+          cardNumber = 'Card number: $value';
+        }
+
+        if (keyString == 'expiry') {
+          expiryDate = 'Expiry date: $value';
+        }
+      });
+    }
+
+    setState(() {});
+    // Get.to(() => const CameraPreviewScreen());
     // Get.to(() => const ScanCardPage());
     return;
     // try {

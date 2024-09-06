@@ -45,7 +45,11 @@ import Vision
 // MARK: - Camera Session
 extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
     private func startCamera(result: @escaping FlutterResult, windowFrame: CGRect?) {
-        isProcessing = false // start camera session.
+        /// On camera session start, holding detection for 2 seconds for getting clear card image.
+        isProcessing = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            self?.isProcessing = false
+        }
         if cameraSession != nil {
             result(self.customCameraTexture?.textureId)
             return
