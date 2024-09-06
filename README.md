@@ -1,6 +1,6 @@
 # Card Scanner
 
-A Flutter project that scan the credit/debit cards.
+A Flutter App that scan the credit/debit cards.
 
 ## Getting Started
 
