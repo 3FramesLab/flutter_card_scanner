@@ -69,7 +69,11 @@ extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
         cameraSession?.addOutput(cameraOutput)
         
         self.customCameraTexture = CustomCameraTexture(cameraPreviewLayer: cameraPreviewLayer!, registry: flutterTextureEntry!)
-        cameraSession?.startRunning()
+        
+        // Calling it on the main thread can lead to UI unresponsiveness
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            self?.cameraSession?.startRunning()
+        }
         result(self.customCameraTexture?.textureId)
     }
     
