@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Your device camera is used to capture credit/debit cards</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Your phone photo librabry may use for picking credit/debit card images.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

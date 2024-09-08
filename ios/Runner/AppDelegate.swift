@@ -15,18 +15,16 @@ import Vision
     private var height = 1080
     private var textureId: Int64?
     private var lastSampleBuffer: CMSampleBuffer?
-    private var isProcessing = false
+    private var allowScanning = false
     private var channel: FlutterMethodChannel?
     
     override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         guard let window, let flutterViewController = window.rootViewController as? FlutterViewController else {
             return super.application(application, didFinishLaunchingWithOptions: launchOptions)
         }
-        print("\nwindow size: \(window.bounds)")
-        flutterTextureEntry = flutterViewController.engine!.textureRegistry
+        flutterTextureEntry = flutterViewController.engine?.textureRegistry
         channel = FlutterMethodChannel(name: "com.3frames/ocr", binaryMessenger: flutterViewController.binaryMessenger)
         channel?.setMethodCallHandler({ [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
-            print("\nFlutter callback method: \(call.method)")
             if call.method == "startCamera" {
                 self?.startCamera(result: result, windowFrame: window.bounds)
             } else if call.method == "getPreviewWidth" {
@@ -40,15 +38,42 @@ import Vision
         GeneratedPluginRegistrant.register(with: self)
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
+    
+    override func applicationDidEnterBackground(_ application: UIApplication) {
+        super.applicationDidEnterBackground(application)
+        if let cameraSession, cameraSession.isRunning == true {
+            setEnableScanning(false)
+            cameraSession.stopRunning()
+        }
+    }
+    
+    override func applicationWillEnterForeground(_ application: UIApplication) {
+        super.applicationWillEnterForeground(application)
+        setEnableScanning(false)
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            if let session = self?.cameraSession, !session.isRunning {
+                session.startRunning()
+            }
+            /// Camera session hold detection for 2 seconds for getting accurate image.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                self?.setEnableScanning(true)
+            }
+        }
+    }
+    
+    private func setEnableScanning(_ shouldScan: Bool) {
+        allowScanning = shouldScan
+        print("\nScanning \(shouldScan ? "enabled" : "disabled").")
+    }
 }
 
 // MARK: - Camera Session
 extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
     private func startCamera(result: @escaping FlutterResult, windowFrame: CGRect?) {
         /// On camera session start, holding detection for 2 seconds for getting clear card image.
-        isProcessing = true
+        setEnableScanning(false)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-            self?.isProcessing = false
+            self?.setEnableScanning(true)
         }
         if cameraSession != nil {
             result(self.customCameraTexture?.textureId)
@@ -64,7 +89,9 @@ extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         cameraSession?.addInput(input)
-        cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: cameraSession!)
+        if let cameraSession {
+            cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: cameraSession)
+        }
         cameraPreviewLayer?.videoGravity = .resizeAspectFill
         
         let cameraOutput = AVCaptureVideoDataOutput()
@@ -72,7 +99,9 @@ extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
         cameraOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "camera_frame_queue"))
         cameraSession?.addOutput(cameraOutput)
         
-        self.customCameraTexture = CustomCameraTexture(cameraPreviewLayer: cameraPreviewLayer!, registry: flutterTextureEntry!)
+        if let cameraPreviewLayer, let flutterTextureEntry {
+            self.customCameraTexture = CustomCameraTexture(cameraPreviewLayer: cameraPreviewLayer, registry: flutterTextureEntry)
+        }
         
         // Calling it on the main thread can lead to UI unresponsiveness
         DispatchQueue.global(qos: .background).async { [weak self] in
@@ -102,7 +131,7 @@ extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         self.customCameraTexture?.update(sampleBuffer: sampleBuffer)
         guard let frame = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            debugPrint("unable to get image from sample buffer"); return
+            print("Error: unable to get image from sample buffer"); return
         }
         detectRectangle(in: frame, buffer: sampleBuffer)
     }
@@ -111,14 +140,13 @@ extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
         let request = VNDetectRectanglesRequest(completionHandler: { (request: VNRequest, error: Error?) in
             DispatchQueue.main.async { [weak self] in
                 guard let results = request.results as? [VNRectangleObservation] else { return }
-                guard self?.isProcessing == false, let rect = results.first else { return }
+                guard self?.allowScanning == true, let rect = results.first else { return }
                 self?.doPerspectiveCorrection(rect, from: image)
             }
         })
         let cardAspectRatio: Float = 85.60/53.98
         request.minimumAspectRatio = cardAspectRatio * 0.95
         request.maximumAspectRatio = cardAspectRatio * 1.10
-        print("\nMin AR: \(cardAspectRatio * 0.95) | Max AR: \(cardAspectRatio * 1.10)")
         request.maximumObservations = 1
         let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: image, options: [:])
         do {
@@ -142,11 +170,11 @@ extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
         ])
         let context = CIContext()
         if let cgImage = context.createCGImage(ciImage, from: ciImage.extent) {
-            isProcessing = true
+            setEnableScanning(false)
             AppleOcr.recognizeCard(in: cgImage) { [weak self] card in
                 DispatchQueue.main.async { [weak self] in
                     if card?.isValid == true {
-                        print("\nCard info: \(String(describing: card?.toDictionary())))")
+                        print("\nCard detail: \(String(describing: card?.toDictionary())))")
                         if self?.cameraSession?.isRunning == true {
                             self?.cameraSession?.stopRunning()
                             self?.cameraSession = nil
@@ -154,7 +182,7 @@ extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
                         self?.channel?.invokeMethod("onCardDetected", arguments: card?.toDictionary())
                     } else {
                         print("Not a valid card, continue scanning...")
-                        self?.isProcessing = false
+                        self?.setEnableScanning(true)
                     }
                 }
             }
@@ -204,12 +232,14 @@ class CustomCameraTexture: NSObject, FlutterTexture {
     
     func update(sampleBuffer: CMSampleBuffer) {
         lastSampleBuffer = sampleBuffer
-        textureRegistry?.textureFrameAvailable(textureId!)
+        if let textureRegistry, let textureId {
+            textureRegistry.textureFrameAvailable(textureId)
+        }
     }
     
     deinit {
-        if let textureId = textureId {
-            textureRegistry?.unregisterTexture(textureId)
+        if let textureRegistry, let textureId {
+            textureRegistry.unregisterTexture(textureId)
         }
     }
 }
@@ -219,19 +249,3 @@ extension CGPoint {
         return CGPoint(x: self.x * size.width, y: self.y * size.height)
     }
 }
-
-//extension AppDelegate {
-//    private func getAreaOfIntrestsFrameIn(_ frame: CGRect?) -> CGRect {
-//        guard let frame else { return CGRect.zero }
-//        let height = frame.height
-//        let width = frame.width
-//        
-//        let calculatedHeight = height * 4.01
-//        let calculatedWidth = width * 1.24
-//        
-//        let x = (width/2) - (calculatedWidth/2)
-//        let y = (height/2) - (calculatedHeight/2)
-//        let calculatedFrame = CGRect(x: x, y: y, width: calculatedWidth, height: calculatedHeight)
-//        return calculatedFrame
-//    }
-//}
