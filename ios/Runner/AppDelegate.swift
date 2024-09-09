@@ -25,11 +25,15 @@ import Vision
         flutterTextureEntry = flutterViewController.engine?.textureRegistry
         channel = FlutterMethodChannel(name: "com.3frames/ocr", binaryMessenger: flutterViewController.binaryMessenger)
         channel?.setMethodCallHandler({ [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
-            if call.method == "startCamera" {
+            if call.method == Constants.MethodName.startCamera {
                 self?.startCamera(result: result, windowFrame: window.bounds)
-            } else if call.method == "getPreviewWidth" {
+            } else if call.method == Constants.MethodName.startScanning {
+                self?.setEnableScanning(true)
+            } else if call.method == Constants.MethodName.stopScanning {
+                self?.setEnableScanning(false)
+            } else if call.method == Constants.MethodName.previewWidth {
                 result(self?.width)
-            } else if call.method == "getPreviewHeight" {
+            } else if call.method == Constants.MethodName.previewHeight {
                 result(self?.height)
             } else {
                 result(FlutterMethodNotImplemented)
@@ -189,63 +193,5 @@ extension AppDelegate: AVCaptureVideoDataOutputSampleBufferDelegate {
         } else {
             print("\nError: Failed to capture card image.")
         }
-    }
-}
-
-class CustomCameraTexture: NSObject, FlutterTexture {
-    private weak var textureRegistry: FlutterTextureRegistry?
-    var textureId: Int64?
-    private var cameraPreviewLayer: AVCaptureVideoPreviewLayer?
-    private let bufferQueue = DispatchQueue(label: "com.example.flutter/ios.camera.session.queue")
-    private var _lastSampleBuffer: CMSampleBuffer?
-    private var customCameraTexture: CustomCameraTexture?
-    
-    private var lastSampleBuffer: CMSampleBuffer? {
-        get {
-            var result: CMSampleBuffer?
-            bufferQueue.sync {
-                result = _lastSampleBuffer
-            }
-            return result
-        }
-        set {
-            bufferQueue.sync {
-                _lastSampleBuffer = newValue
-            }
-        }
-    }
-    
-    init(cameraPreviewLayer: AVCaptureVideoPreviewLayer, registry: FlutterTextureRegistry) {
-        self.cameraPreviewLayer = cameraPreviewLayer
-        self.textureRegistry = registry
-        super.init()
-        self.textureId = registry.register(self)
-    }
-    
-    func copyPixelBuffer() -> Unmanaged<CVPixelBuffer>? {
-        guard let sampleBuffer = lastSampleBuffer, let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            return nil
-        }
-        
-        return Unmanaged.passRetained(pixelBuffer)
-    }
-    
-    func update(sampleBuffer: CMSampleBuffer) {
-        lastSampleBuffer = sampleBuffer
-        if let textureRegistry, let textureId {
-            textureRegistry.textureFrameAvailable(textureId)
-        }
-    }
-    
-    deinit {
-        if let textureRegistry, let textureId {
-            textureRegistry.unregisterTexture(textureId)
-        }
-    }
-}
-
-extension CGPoint {
-    func scaled(to size: CGSize) -> CGPoint {
-        return CGPoint(x: self.x * size.width, y: self.y * size.height)
     }
 }
