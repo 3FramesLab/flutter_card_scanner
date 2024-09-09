@@ -36,8 +36,8 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen> {
 
       setState(() {
         debugPrint('setting attributes');
-        debugPrint(previewWidth);
-        debugPrint(previewHeight);
+        debugPrint('previewWidth $previewWidth');
+        debugPrint('previewHeight $previewHeight');
 
         _previewWidth = previewWidth.toDouble();
         _previewHeight = previewHeight.toDouble();
