@@ -74,17 +74,14 @@ public class FlutterCardScannerPlugin: FlutterAppDelegate, FlutterPlugin  {
     
     private func setEnableScanning(_ shouldScan: Bool) {
         allowScanning = shouldScan
-//        DispatchQueue.global(qos: .background).async { [weak self] in
-//            if (shouldScan) {
-//                self?.cameraSession?.startRunning()
-//            } else {
-//                self?.cameraSession?.stopRunning()
-//            }
-//        }
         
-        if (shouldScan) {
-            self.cameraSession?.startRunning()
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            if (shouldScan) {
+                self?.cameraSession?.startRunning()
+            }
         }
+        
+       
         
         print("\nScanning \(shouldScan ? "enabled" : "disabled").")
     }

@@ -37,7 +37,7 @@ struct CardData: Codable {
     
     var isValid: Bool {
         guard let number, let expiry else { return false }
-        return !number.isEmpty && !expiry.isEmpty
+        return (!number.isEmpty && number.count == 16) && !expiry.isEmpty
     }
 }
 
