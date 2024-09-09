@@ -32,8 +32,13 @@ public class FlutterCardScannerPlugin: FlutterAppDelegate, FlutterPlugin  {
             flutterTextureEntry = viewController?.engine?.textureRegistry
             self.startCamera(result: result)
             break;
+        case Constants.MethodName.stopCamera:
+            if cameraSession?.isRunning == true {
+                cameraSession?.stopRunning()
+            }
+            
+            break;
         case Constants.MethodName.startScanning:
-            print("start scanning...")
             self.setEnableScanning(true)
             break;
         case Constants.MethodName.stopScanning:
@@ -76,12 +81,10 @@ public class FlutterCardScannerPlugin: FlutterAppDelegate, FlutterPlugin  {
         allowScanning = shouldScan
         
         DispatchQueue.global(qos: .background).async { [weak self] in
-            if (shouldScan) {
+            if (shouldScan && self?.cameraSession?.isRunning == false) {
                 self?.cameraSession?.startRunning()
             }
         }
-        
-       
         
         print("\nScanning \(shouldScan ? "enabled" : "disabled").")
     }
@@ -90,18 +93,12 @@ public class FlutterCardScannerPlugin: FlutterAppDelegate, FlutterPlugin  {
 
 // MARK: - Camera Session
 extension FlutterCardScannerPlugin: AVCaptureVideoDataOutputSampleBufferDelegate {
-    //    private func startCamera(result: @escaping FlutterResult, windowFrame: CGRect?) {
     private func startCamera(result: @escaping FlutterResult) {
         /// On camera session start, holding detection for 2 seconds for getting clear card image.
         setEnableScanning(false)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
             self?.setEnableScanning(true)
         }
-        if cameraSession != nil {
-            result(self.customCameraTexture?.textureId)
-            return
-        }
-        
         cameraSession = AVCaptureSession()
         cameraSession?.sessionPreset = .high
         
