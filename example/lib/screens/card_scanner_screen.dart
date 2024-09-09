@@ -18,12 +18,10 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen> {
   double _previewWidth = 0.0;
   double _previewHeight = 0.0;
   bool isPortrait = false;
-  // final _overlayOrientation = CardOrientation.landscape;
 
   @override
   void initState() {
     super.initState();
-    // platform.setMethodCallHandler(_handleMethod);
     MethodChannelFlutterCardScanner.methodChannel
         .setMethodCallHandler(_handleMethod);
     _initializeCamera();
@@ -31,21 +29,21 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen> {
 
   Future<void> _initializeCamera() async {
     try {
-      print('debug-print: initializing camera');
+      debugPrint('debug-print: initializing camera');
       await startCamera();
       var previewWidth = await flutterCardScanner.getPreviewWidth();
       var previewHeight = await flutterCardScanner.getPreviewHeight();
 
       setState(() {
-        print('setting attributes');
-        print(previewWidth);
-        print(previewHeight);
+        debugPrint('setting attributes');
+        debugPrint(previewWidth);
+        debugPrint(previewHeight);
 
         _previewWidth = previewWidth.toDouble();
         _previewHeight = previewHeight.toDouble();
       });
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -73,36 +71,15 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen> {
                     ),
                   ),
                 ),
-                // Container(
-                //   child: _overlayBuilder(context),
-                // ),
               ],
             ),
     );
   }
 
-  // Widget _overlayBuilder(BuildContext context) {
-  //   return CameraScannerOverlay(
-  //     cameraOverlayLayout: _cameraOverlay,
-  //     scannerMessage:
-  //         'Hold card inside the frame.\nIt will scan automatically.',
-  //     primaryButtonText: 'Add Card Number Manually',
-  //     onPrimaryButtonPressed: () {
-  //       print('click on button');
-  //     },
-  //   );
-  // }
-
-  // Widget get _cameraOverlay => CameraOverlayWidget(
-  //       cardOrientation: _overlayOrientation,
-  //       overlayColorFilter: const Color.fromRGBO(0, 0, 0, 80),
-  //       overlayBorderRadius: 0,
-  //     );
-
   Future<dynamic> _handleMethod(MethodCall call) async {
     if (call.method == "onCardDetected") {
       flutterCardScanner.stopScanning();
-      print('debug-print: card details: ${call.arguments}');
+      debugPrint('debug-print: card details: ${call.arguments}');
 
       Get.dialog(
         AlertDialog(
@@ -127,9 +104,6 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen> {
           ],
         ),
       );
-
-      // print(call.arguments);
-      // Navigator.pop(context, call.arguments);
     }
   }
 

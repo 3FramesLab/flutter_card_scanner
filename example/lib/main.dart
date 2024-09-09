@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_card_scanner_example/CameraPreviewScreen.dart';
+import 'package:flutter_card_scanner_example/screens/card_scanner_screen.dart';
 import 'package:get/get.dart';
 
 void main() {
