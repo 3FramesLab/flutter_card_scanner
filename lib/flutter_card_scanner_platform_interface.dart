@@ -43,4 +43,8 @@ abstract class FlutterCardScannerPlatform extends PlatformInterface {
   Future<dynamic> getPreviewHeight() {
     throw UnimplementedError('getPreviewHeight() has not been implemented.');
   }
+
+  Future<void> resetCamera() {
+    throw UnimplementedError('resetCamera() has not been implemented.');
+  }
 }

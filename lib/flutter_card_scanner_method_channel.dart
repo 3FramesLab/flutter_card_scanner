@@ -38,4 +38,9 @@ class MethodChannelFlutterCardScanner extends FlutterCardScannerPlatform {
   Future<void> stopScanning() async {
     await methodChannel.invokeMethod('stopScanning');
   }
+
+  @override
+  Future<void> resetCamera() async {
+    await methodChannel.invokeMethod('resetCamera');
+  }
 }
