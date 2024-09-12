@@ -27,6 +27,9 @@ class MockFlutterCardScannerPlatform
 
   @override
   Future<void> stopScanning() async {}
+
+  @override
+  Future<void> stopCamera() async {}
 }
 
 void main() {

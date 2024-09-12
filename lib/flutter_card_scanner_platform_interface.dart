@@ -28,6 +28,10 @@ abstract class FlutterCardScannerPlatform extends PlatformInterface {
     throw UnimplementedError('startCamera() has not been implemented.');
   }
 
+  Future<void> stopCamera() {
+    throw UnimplementedError('stopCamera() has not been implemented.');
+  }
+
   Future<void> startScanning() {
     throw UnimplementedError('startScanning() has not been implemented.');
   }
