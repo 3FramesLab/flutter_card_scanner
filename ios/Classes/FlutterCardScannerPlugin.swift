@@ -31,25 +31,20 @@ public class FlutterCardScannerPlugin: FlutterAppDelegate, FlutterPlugin  {
             let viewController = UIApplication.shared.delegate?.window??.rootViewController  as? FlutterViewController
             flutterTextureEntry = viewController?.engine?.textureRegistry
             self.startCamera(result: result)
-            break;
         case Constants.MethodName.stopCamera:
             if cameraSession?.isRunning == true {
                 cameraSession?.stopRunning()
             }
-            
-            break;
         case Constants.MethodName.startScanning:
             self.setEnableScanning(true)
-            break;
         case Constants.MethodName.stopScanning:
             self.setEnableScanning(false)
-            break;
         case Constants.MethodName.previewWidth:
             result(self.width)
-            break;
         case Constants.MethodName.previewHeight:
             result(self.height)
-            break;
+        case Constants.MethodName.resetCamera:
+            reset()
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -87,6 +82,17 @@ public class FlutterCardScannerPlugin: FlutterAppDelegate, FlutterPlugin  {
         }
         
         print("\nScanning \(shouldScan ? "enabled" : "disabled").")
+    }
+    
+    private func reset() {
+        if cameraSession?.isRunning == true {
+            cameraSession?.stopRunning()
+        }
+        cameraPreviewLayer = nil
+        customCameraTexture = nil
+        textureId = nil
+        lastSampleBuffer = nil
+        allowScanning = false
     }
 }
 

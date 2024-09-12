@@ -15,6 +15,7 @@ struct Constants {
         static let stopScanning = "stopScanning"
         static let previewWidth = "getPreviewWidth"
         static let previewHeight = "getPreviewHeight"
+        static let resetCamera = "resetCamera"
     }
 }
 
