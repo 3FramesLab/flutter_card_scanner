@@ -34,15 +34,18 @@ public class FlutterCardScannerPlugin: FlutterAppDelegate, FlutterPlugin  {
             break;
         case Constants.MethodName.stopCamera:
             if cameraSession?.isRunning == true {
+                print("in if stopCamera")
                 cameraSession?.stopRunning()
             }
-            
+            result(false)
             break;
         case Constants.MethodName.startScanning:
             self.setEnableScanning(true)
+            result(true)
             break;
         case Constants.MethodName.stopScanning:
             self.setEnableScanning(false)
+            result(false)
             break;
         case Constants.MethodName.previewWidth:
             result(self.width)
