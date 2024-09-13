@@ -39,6 +39,10 @@ public class FlutterCardScannerPlugin: FlutterAppDelegate, FlutterPlugin  {
             }
             result(false)
             break;
+        case Constants.MethodName.resetCamera:
+            reset()
+            result(true)
+            break;
         case Constants.MethodName.startScanning:
             self.setEnableScanning(true)
             result(true)
@@ -90,6 +94,18 @@ public class FlutterCardScannerPlugin: FlutterAppDelegate, FlutterPlugin  {
         }
         
         print("\nScanning \(shouldScan ? "enabled" : "disabled").")
+    }
+    
+    private func reset() {
+        if cameraSession?.isRunning == true {
+            cameraSession?.stopRunning()
+        }
+        cameraSession = nil
+        cameraPreviewLayer = nil
+        customCameraTexture = nil
+        textureId = nil
+        lastSampleBuffer = nil
+        allowScanning = false
     }
 }
 
