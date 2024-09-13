@@ -11,6 +11,7 @@ struct Constants {
     struct MethodName {
         static let startCamera = "startCamera"
         static let stopCamera = "stopCamera"
+        static let resetCamera = "resetCamera"
         static let startScanning = "startScanning"
         static let stopScanning = "stopScanning"
         static let previewWidth = "getPreviewWidth"

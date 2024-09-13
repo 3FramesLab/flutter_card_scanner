@@ -24,4 +24,8 @@ class FlutterCardScanner {
   Future<void> stopCamera() {
     return FlutterCardScannerPlatform.instance.stopCamera();
   }
+
+  Future<void> resetCamera() {
+    return FlutterCardScannerPlatform.instance.resetCamera();
+  }
 }
