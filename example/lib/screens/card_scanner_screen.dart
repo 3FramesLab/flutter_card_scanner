@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_card_scanner/flutter_card_scanner.dart';
 import 'package:flutter_card_scanner/flutter_card_scanner_method_channel.dart';
+import 'package:flutter_card_scanner_example/screens/second_screen.dart';
 import 'package:get/route_manager.dart';
 
 class CameraPreviewScreen extends StatefulWidget {
@@ -81,29 +82,31 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen> {
       flutterCardScanner.stopScanning();
       debugPrint('debug-print: card details: ${call.arguments}');
 
-      Get.dialog(
-        AlertDialog(
-          title: const Text('Card Details'),
-          content: Text('Card Number: ${call.arguments['number']}'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Get.back();
-                Get.back(result: call.arguments);
-              },
-              child: const Text('Close'),
-            ),
-            TextButton(
-              onPressed: () {
-                Get.back();
-                flutterCardScanner.startScanning();
-                // startCamera();
-              },
-              child: const Text('Re-Scan'),
-            ),
-          ],
-        ),
-      );
+      Get.off(() => SecondScreen());
+
+      // Get.dialog(
+      //   AlertDialog(
+      //     title: const Text('Card Details'),
+      //     content: Text('Card Number: ${call.arguments['number']}'),
+      //     actions: <Widget>[
+      //       TextButton(
+      //         onPressed: () {
+      //           Get.back();
+      //           Get.back(result: call.arguments);
+      //         },
+      //         child: const Text('Close'),
+      //       ),
+      //       TextButton(
+      //         onPressed: () {
+      //           Get.back();
+      //           flutterCardScanner.startScanning();
+      //           // startCamera();
+      //         },
+      //         child: const Text('Re-Scan'),
+      //       ),
+      //     ],
+      //   ),
+      // );
     }
   }
 
@@ -112,5 +115,13 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen> {
     setState(() {
       _textureId = textureId as int;
     });
+  }
+
+  @override
+  void dispose() {
+    try {
+      flutterCardScanner.resetCamera();
+    } catch (_) {}
+    super.dispose();
   }
 }
