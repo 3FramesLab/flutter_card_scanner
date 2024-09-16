@@ -53,10 +53,4 @@ class CustomCameraTexture: NSObject, FlutterTexture {
             textureRegistry.textureFrameAvailable(textureId)
         }
     }
-    
-    deinit {
-        if let textureRegistry, let textureId {
-            textureRegistry.unregisterTexture(textureId)
-        }
-    }
 }
