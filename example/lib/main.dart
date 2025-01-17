@@ -50,18 +50,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _captureImage() async {
     final result = await Get.to(() => const CameraPreviewScreen());
-    print(result);
+
     if (result is Map) {
       result.forEach((key, value) {
         final keyString = key.toString();
         if (keyString == 'number') {
           // cardNumber = 'Card number: $value';
-          print('Card number: $value');
+          // print('Card number: $value');
         }
 
         if (keyString == 'expiry') {
           // expiryDate = 'Expiry date: $value';
-          print('Expiry date: $value');
+          // print('Expiry date: $value');
         }
       });
     }

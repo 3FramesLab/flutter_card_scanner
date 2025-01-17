@@ -82,7 +82,7 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen> {
       flutterCardScanner.stopScanning();
       debugPrint('debug-print: card details: ${call.arguments}');
 
-      Get.off(() => SecondScreen());
+      Get.off(() => const SecondScreen());
 
       // Get.dialog(
       //   AlertDialog(
